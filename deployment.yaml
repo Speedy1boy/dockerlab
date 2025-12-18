@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myip-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myip
+  template:
+    metadata:
+      labels:
+        app: myip
+    spec:
+      containers:
+        - name: myip
+          image: myip:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TYPE
+              value: "myip"

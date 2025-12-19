@@ -1,32 +1,25 @@
 const express = require("express");
-const axios = require("axios");
+
+const IpApiProvider = require("./providers/ipapi");
+const JsonIpProvider = require("./providers/jsonip");
 
 const app = express();
 const PORT = 8080;
 
-app.get("/", async (req, res) => {
+function getProvider() {
     const type = process.env.TYPE || "ipapi";
 
-    let url;
     if (type === "ipapi") {
-        url = "http://ip-api.com/json/";
-    } else {
-        url = "https://jsonip.com/";
+        return new IpApiProvider();
     }
 
+    return new JsonIpProvider();
+}
+
+app.get("/", async (req, res) => {
     try {
-        const response = await axios.get(url);
-        const data = response.data;
-
-        let ip;
-        if (data.query) {
-            ip = data.query; // ip-api
-        } else if (data.ip) {
-            ip = data.ip;    // jsonip.com
-        } else {
-            return res.status(500).json({ error: "IP not found" });
-        }
-
+        const provider = getProvider();
+        const ip = await provider.getIp();
         res.json({ myIP: ip });
     } catch (err) {
         res.status(500).json({ error: err.message });
